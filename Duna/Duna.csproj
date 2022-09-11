@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+	<TargetFramework>net6.0-windows8.0</TargetFramework>
+	<Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>index.ico</ApplicationIcon>
+    <IsPublishable>False</IsPublishable>
+    <SignAssembly>False</SignAssembly>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <Version>1.1.3</Version>
+    <PackageId>Hyba-Duna</PackageId>
+    <Authors>HYBIK</Authors>
+    <Company>HYBIX-inc</Company>
+    <Product>Hyba-Duna-v1</Product>
+    <Description>Хуба - ИИ обученный при помощи машинного обучения для класификации данных. Выступает в качестве текстового ассистента</Description>
+    <Copyright>Используя это приложение, вы подтверждаете что вы будете носить весь о Хубе по всему миру, и вступите в наш культ</Copyright>
+    <PackageIcon>index.png</PackageIcon>
+    <AssemblyVersion>1.1.3</AssemblyVersion>
+    <FileVersion>1.1.4</FileVersion>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <COMReference Include="{215d64d2-031c-33c7-96e3-61794cd1ee61}">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>4</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>215d64d2-031c-33c7-96e3-61794cd1ee61</Guid>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="index.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.17.1" />
+    <PackageReference Include="Microsoft.ML" Version="1.6.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup Label="DunaAI">
+    <None Include="DunaAI.consumption.cs">
+      <DependentUpon>DunaAI.mbconfig</DependentUpon>
+    </None>
+    <None Include="DunaAI.training.cs">
+      <DependentUpon>DunaAI.mbconfig</DependentUpon>
+    </None>
+    <None Include="DunaAI.zip">
+      <DependentUpon>DunaAI.mbconfig</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
