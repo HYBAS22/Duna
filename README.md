@@ -2,6 +2,9 @@
 Хотя я даже не уверен можно ли так называть
 Сделан от скуки, просто так.
 Полностью из говнокода
+![screenshot 39](https://user-images.githubusercontent.com/64355829/189521792-47bbad5e-3c98-48ca-ac34-0bef3896bcf6.png)
+![screenshot 40](https://user-images.githubusercontent.com/64355829/189521796-7d3fd400-cc1b-4614-a83b-01733716a2cc.png)
+![screenshot 41](https://user-images.githubusercontent.com/64355829/189521800-9cde4b13-5322-4650-89c4-4af52f491020.png)
 
 # Как собрать | Что использовать
 Что бы собрать хубу нужно:
