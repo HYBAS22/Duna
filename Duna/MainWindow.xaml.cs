@@ -16,11 +16,13 @@ using System.Xml;
 using Duna.Windows;
 using Duna.SaveModules;
 using System.Text.RegularExpressions;
+using Hardcodet.Wpf.TaskbarNotification;
+using System.ComponentModel;
 
 namespace Duna
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Код чёрт возьми
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -28,16 +30,26 @@ namespace Duna
         public static bool isCheckMainWord = false;
         public static bool showArgsInfo = false;
 
+        public static TaskbarIcon tb { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
 
             this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            tb = (TaskbarIcon)FindResource("Duna");
             await LoadSavedData();
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Application.Current.MainWindow.Hide();
         }
 
         private void SendMessageButton(object sender, RoutedEventArgs e)
@@ -110,7 +122,7 @@ namespace Duna
             }
             else
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     TextBlock message = new TextBlock();
                     message.Text = $"Хуба: {text}";
@@ -270,7 +282,7 @@ namespace Duna
             AddNewMessage(false, "Простите, ребут ещё не доступен"); 
         }
 
-        void Help() { AddNewMessage(false, @"В данный момент я могу подсказать погоду и время, открыть видео на ютуб. Меня можно настроить написав мне <настройки>. Имею систему сохранений ваших настроек в папке AppData\Duna"); }
+        void Help() { AddNewMessage(false, @"В данный момент я могу подсказать погоду и время, открыть видео на ютуб. Меня можно настроить написав мне <настройки>. Имею систему сохранений ваших настроек в папке AppData\Duna. Так же я могу подсказать IT новости"); }
 
         void Support()
         {
@@ -445,6 +457,7 @@ namespace Duna
                 FileName = $"https://www.youtube.com/results?search_query={string.Join(" ", args)}",
                 UseShellExecute = true
             });
+
         }
     }
 }

@@ -9,9 +9,18 @@ using System.Windows;
 namespace Duna
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Здесь логика для всякой фигни, ну щяс в основном для иконки
     /// </summary>
     public partial class App : Application
     {
+        public void Open_Program(object sender, RoutedEventArgs e)
+        {
+            Application.Current.MainWindow.Show();
+        }
+
+        public void Close_Program(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
     }
 }
