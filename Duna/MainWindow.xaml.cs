@@ -15,9 +15,15 @@ using AngleSharp;
 using System.Xml;
 using Duna.Windows;
 using Duna.SaveModules;
+using Duna.Module;
+using Duna.Programs;
 using System.Text.RegularExpressions;
 using Hardcodet.Wpf.TaskbarNotification;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Imaging;
+using AngleSharp.Browser;
+using System.Windows.Threading;
 
 namespace Duna
 {
@@ -26,9 +32,11 @@ namespace Duna
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static string LastText;
+        public static string LastText, LastCommand;
         public static bool isCheckMainWord = false;
         public static bool showArgsInfo = false;
+        public static int milisecondForScreenshotDelay = 350;
+        static Dictionary<int, string> programs;
 
         public static TaskbarIcon tb { get; set; }
 
@@ -43,6 +51,7 @@ namespace Duna
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             tb = (TaskbarIcon)FindResource("Duna");
+
             await LoadSavedData();
         }
 
@@ -72,17 +81,18 @@ namespace Duna
             SaveData data = await repository.Load();
             Debug.WriteLine($"mainWord: {data.checkMainWord}");
             Debug.WriteLine($"argsInfo: {data.showArgsInfo}");
+            Debug.WriteLine($"screenshotDelayTime: {data.delayForScreenshot}");
 
             data = await repository.Load();
             isCheckMainWord = data.checkMainWord;
             showArgsInfo = data.showArgsInfo;
-            Debug.WriteLine($"вывод после загрузки: {data.checkMainWord}, {data.showArgsInfo}");
+            milisecondForScreenshotDelay = data.delayForScreenshot;
+            Debug.WriteLine($"вывод после загрузки: {data.checkMainWord}, {data.showArgsInfo}, {data.delayForScreenshot}");
         }
 
         void AddNewMessage(bool IsUserMessage, string text)
         {
             // Обработка текста, удаление знаков и т.д
-            text = text.ToLower();
             string[] punctuation_marks = { ".", ",", "!", "?", ";", "", "-", "(", ")", "#" };
             string text_without_chars = text;
             Console.WriteLine(text_without_chars);
@@ -100,46 +110,95 @@ namespace Duna
             // разбивка предложения на слова
             string[] chunks = text_without_chars.Split(' ');
 
-            LastText = text;
+            LastText = text.ToLower();
 
             // Для Hex цвета
             var bc = new BrushConverter();
 
             if (IsUserMessage)
             {
-                TextBlock message = new TextBlock();
-                message.Text = $"Пользователь: {text}";
-                message.HorizontalAlignment = HorizontalAlignment.Right;
-                message.Margin = new Thickness(5);
-                message.Background = (Brush)bc.ConvertFrom("#FF424242");
-                message.FontSize = 18;
-                message.TextWrapping = TextWrapping.Wrap;
-                message.Foreground = new SolidColorBrush(Colors.White);
-
-                panel.Children.Add(message);
-
-                GetCommandInput(text);
-            }
-            else
-            {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
+                Dispatcher.Invoke(DispatcherPriority.Background,
+                  new Action(() => {
                     TextBlock message = new TextBlock();
-                    message.Text = $"Хуба: {text}";
-                    message.HorizontalAlignment = HorizontalAlignment.Left;
+                    message.Text = $"Пользователь: {text}";
+                    message.HorizontalAlignment = HorizontalAlignment.Right;
                     message.Margin = new Thickness(5);
-                    message.Background = (Brush)bc.ConvertFrom("#FF424242");
+                    message.Background = (System.Windows.Media.Brush)bc.ConvertFrom("#FF424242");
                     message.FontSize = 18;
                     message.TextWrapping = TextWrapping.Wrap;
                     message.Foreground = new SolidColorBrush(Colors.White);
 
                     panel.Children.Add(message);
 
-                });
+                }));
+
+                if (LastCommand == null) GetCommandInput(text);
+                else CommandWithAcception(text);
+            }
+            else
+            {
+                Dispatcher.Invoke(DispatcherPriority.Background,
+                  new Action(() => {
+                    TextBlock message = new TextBlock();
+                    message.Text = $"Хуба: {text}";
+                    message.HorizontalAlignment = HorizontalAlignment.Left;
+                    message.Margin = new Thickness(5);
+                    message.Background = (System.Windows.Media.Brush)bc.ConvertFrom("#FF424242");
+                    message.FontSize = 18;
+                    message.TextWrapping = TextWrapping.Wrap;
+                    message.Foreground = new SolidColorBrush(Colors.White);
+
+                    panel.Children.Add(message);
+
+                }));
             }
         }
 
-        void GetCommandInput(string text)
+        void CommandWithAcception(string acception)
+        {
+            if (LastCommand == "открыть ПО")
+            {
+                try
+                {
+                    int parsed = int.Parse(acception);
+
+                    if (programs.ContainsKey(parsed))
+                    {
+                        AddNewMessage(false, $"Запускаю...");
+
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = programs[parsed],
+                            UseShellExecute = true
+                        });
+
+                        programs.Clear();
+                    }
+                }
+
+                catch
+                {
+                    AddNewMessage(false, "Отменяю...");
+                }
+            }
+
+            if (acception == "да")
+            {
+                if (LastCommand == "выключить пк")
+                {
+                    Process.Start("shutdown", "/s /t 0");
+                }
+
+                if (LastCommand == "перезагрузка")
+                {
+                    Process.Start("shutdown", "-f -r");
+                }
+            }
+
+            LastCommand = null;
+        }
+
+        async void GetCommandInput(string text)
         {
             DunaAI.ModelOutput result;
 
@@ -149,10 +208,13 @@ namespace Duna
             };
 
             //Load model and predict output
-            result = DunaAI.Predict(sampleData);
+            await Task.Run(() =>
+            {
+                result = DunaAI.Predict(sampleData);
 
-            if (result.Score[0] < 0.9274609) Response(result.Prediction);
-            else AddNewMessage(false, "Сэр, перефразируйте пожалуйста, я не понял");
+                if (result.Score[0] < 0.9274609) Response(result.Prediction);
+                else AddNewMessage(false, "Сэр, перефразируйте пожалуйста, я не понял");
+            });
         }
 
         async Task<string[]> GetArgsFromText(string text, double mainWordScore, double argsScore)
@@ -215,11 +277,15 @@ namespace Duna
                 { "время", TimeNow },
                 { "посчитать", Calculate },
                 { "перезагрузка", Reboot },
+                { "выключить пк", Shutdown },
                 { "ютуб", Youtube },
                 { "википедия", Wikipedia },
                 { "поддержка", Support },
                 { "новости", News },
-                { "настройки", SettingsMenu }
+                { "настройки", SettingsMenu },
+                { "скриншот", Screenshot },
+                { "открыть ПО", OpenProgram },
+                { "интернет", YandexSearch }
             };
 
             Dictionary<string, string> replies = new Dictionary<string, string> // список для ответов
@@ -278,8 +344,15 @@ namespace Duna
         // Сами функции
 
         void Reboot() 
-        { 
-            AddNewMessage(false, "Простите, ребут ещё не доступен"); 
+        {
+            AddNewMessage(false, "Вы уверены что хотите перезагрузить пк? (да, нет)");
+            LastCommand = "перезагрузка";
+        }
+
+        void Shutdown()
+        {
+            AddNewMessage(false, "Вы уверены что хотите выключить пк? (да, нет)");
+            LastCommand = "выключить пк";
         }
 
         void Help() { AddNewMessage(false, @"В данный момент я могу подсказать погоду и время, открыть видео на ютуб. Меня можно настроить написав мне <настройки>. Имею систему сохранений ваших настроек в папке AppData\Duna. Так же я могу подсказать IT новости"); }
@@ -301,8 +374,12 @@ namespace Duna
         void SettingsMenu() 
         {
             AddNewMessage(false, "Открываю настройки");
-            Settings settings = new Settings();
-            settings.Show();
+            Dispatcher.Invoke(DispatcherPriority.Background,
+            new Action(() =>
+            {
+                Settings settings = new Settings();
+                settings.Show();
+            }));
         }
 
         async void News()
@@ -332,33 +409,35 @@ namespace Duna
         async void Weather()
         {
             string weatherText = LastText;
-            string[] args = await GetArgsFromText(weatherText, 0.007, 0.033);
+            string[] args = await GetArgsFromText(weatherText, 0.007, 0.03);
 
             foreach (string city_arg in args)
             {
                 try
                 {
-                    string temp = GetFirstWordForm(city_arg);
+                    string city = GetFirstWordForm(city_arg);
+                    if (city == "город") city = null;
 
                     HttpClient client = new HttpClient();
                     client.BaseAddress = new Uri("http://api.openweathermap.org");
-                    var response = await client.GetAsync($"/data/2.5/weather?q={temp}&appid=c44d8aa0c5e588db11ac6191c0bc6a60&units=metrics&lang=ru");
+                    var response = await client.GetAsync($"/data/2.5/weather?q={city}&appid=c44d8aa0c5e588db11ac6191c0bc6a60&units=metrics&lang=ru");
 
-                    // This line gives me error
                     var stringResult = await response.Content.ReadAsStringAsync();
 
                     var obj = JsonConvert.DeserializeObject<dynamic>(stringResult);
                     double tmpDegrees = Math.Round(((float)obj.main.temp - 273.15), 2);
+                    string description = obj.weather[0].description;
                     string name = obj.name;
 
-                    AddNewMessage(false, string.Format("В городе {0} сейчас {1}°C сэр", name, tmpDegrees));
+                    AddNewMessage(false, string.Format("В городе {0} сейчас {1}, сэр", name, description));
+                    AddNewMessage(false, string.Format("Температура около {0}°C", tmpDegrees));
                     GC.Collect();
                 }
-                catch (Exception) { };
+                catch (Exception e) { };
             }
         }
 
-        void Calculate()
+        async void Calculate()
         {
             string calculate_text = LastText;
             string result = "";
@@ -372,13 +451,53 @@ namespace Duna
                 }
             }
 
-            AddNewMessage(false, $"Результат: {Calculator.Calc(result)}");
+            try
+            {
+                AddNewMessage(false, $"Результат: {await Task.Run(() => Calculator.Calc(result))}");
+            }
+
+            catch (SyntaxErrorException)
+            {
+                AddNewMessage(false, "Вы неправильно ввели ваш пример, попробуйте ещё раз");
+            }
         }
 
         void TimeNow()
         {
             AddNewMessage(false, $"Сейчас время: {DateTime.Now.ToLongTimeString()}");
             AddNewMessage(false, $"Сегодняшнее число же: {DateTime.Now.ToString("dd MMMM yyyy")}");
+        }
+
+        void Screenshot()
+        {
+            Application.Current.MainWindow.Hide();
+            Thread.Sleep(milisecondForScreenshotDelay);
+
+            Random rand = new Random();
+            string file = null;
+
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                if (!File.Exists($"Screenshots\\filename{i}.png"))
+                {
+                    file = $"Screenshots\\screen{i}.png";
+                    break;
+                }
+            }
+           
+            using var bitmap = new Bitmap(1920, 1080);
+            using (var g = Graphics.FromImage(bitmap))
+            {
+                g.CopyFromScreen(0, 0, 0, 0,
+                bitmap.Size, CopyPixelOperation.SourceCopy);
+            }
+
+            bitmap.Save(file, ImageFormat.Png);
+
+            Application.Current.MainWindow.Show();
+
+            if (file != null) AddNewMessage(false, "Скриншот успешно сделан");
+            else AddNewMessage(false, "Не удалось создать скриншот");
         }
 
         async void Anekdot()
@@ -397,7 +516,7 @@ namespace Duna
             
         async void Wikipedia() 
         {
-            string[] args = await GetArgsFromText(LastText, 0.007, 0.04);
+            string[] args = await GetArgsFromText(LastText, 0.007, 0.03);
 
             // удаление <<про>> из аргументов как отдельное слово
             string charToRemove = "про";
@@ -443,18 +562,79 @@ namespace Duna
             catch (Exception e)
             {
                 AddNewMessage(false, $"Сэр, произошла какая то ошибка: {e}");
+                LogSystem.WriteToLogs(e.ToString());
+            }
+        }
+
+        async void OpenProgram()
+        {
+            programs = ProgramSystem.GetProgramsFromText(LastText);
+
+            foreach (var temp in programs)
+            {
+                Debug.WriteLine($"{temp.Key}, {temp.Value}");
+            }
+
+            if (programs.Count >= 2)
+            {
+                AddNewMessage(false, "Выберите программу, которую хотите запустить, отправив нужную цифру:");
+
+                foreach (var temp in programs)
+                {
+                    FileInfo fileInfo = new FileInfo(temp.Value);
+
+                    AddNewMessage(false, $"{temp.Key}. {fileInfo.Name}");
+                }
+
+                LastCommand = "открыть ПО";
+            }
+            
+            else
+            {
+                foreach (var temp in programs)
+                {
+                    FileInfo fileInfo = new FileInfo(temp.Value);
+
+                    AddNewMessage(false, $"Запускаю {fileInfo.Name}...");
+
+                    await Task.Run(() =>
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = temp.Value,
+                            UseShellExecute = true
+                        });
+
+                    });
+
+                    programs.Clear();
+                }
             }
         }
 
         async void Youtube() 
         {
-            string[] args = await GetArgsFromText(LastText, 0.007, 0.04);
+            string[] args = await GetArgsFromText(LastText, 0.007, 0.018);
 
             AddNewMessage(false, "Открываю ютуб с набранными вами аргументами. Если я понял что то не так, прошу переформулируйте фразу");
 
             Process.Start(new ProcessStartInfo
             {
                 FileName = $"https://www.youtube.com/results?search_query={string.Join(" ", args)}",
+                UseShellExecute = true
+            });
+
+        }
+
+        async void YandexSearch()
+        {
+            string[] args = await GetArgsFromText(LastText, 0.007, 0.019);
+
+            AddNewMessage(false, "Открываю поисковик...");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = $"https://yandex.ru/search/?text={string.Join(" ", args)}",
                 UseShellExecute = true
             });
 

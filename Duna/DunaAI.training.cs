@@ -32,7 +32,7 @@ namespace Duna
                                     .Append(mlContext.Transforms.Concatenate(@"Features", @"col0"))      
                                     .Append(mlContext.Transforms.Conversion.MapValueToKey(@"col1", @"col1"))      
                                     .Append(mlContext.Transforms.NormalizeMinMax(@"Features", @"Features"))      
-                                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryEstimator:mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(l1Regularization:0.0312592707462485F,l2Regularization:0.124361598142866F,labelColumnName:@"col1",featureColumnName:@"Features"), labelColumnName: @"col1"))      
+                                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryEstimator:mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(l1Regularization:2.09982178710181F,l2Regularization:32768F,labelColumnName:@"col1",featureColumnName:@"Features"), labelColumnName: @"col1"))      
                                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(@"PredictedLabel", @"PredictedLabel"));
 
             return pipeline;

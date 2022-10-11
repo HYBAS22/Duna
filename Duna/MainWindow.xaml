@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Duna"
         xmlns:System="clr-namespace:System;assembly=System.Runtime" x:Class="Duna.MainWindow"
         mc:Ignorable="d"
-        Title="Hyba" Height="450" Width="600">
+        Title="Hyba" Height="600" Width="750">
 
     <Grid Background="#FF424242" Grid.Row="1">
         <Grid.RowDefinitions>

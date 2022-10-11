@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using Duna.Module;
 
 namespace Duna.SaveModules
 {
@@ -38,8 +40,17 @@ namespace Duna.SaveModules
                         {
                             using var stream = File.OpenRead(_pathToFile);
                             using var reader = new BinaryReader(stream);
-                            data.checkMainWord = reader.ReadBoolean();
-                            data.showArgsInfo = reader.ReadBoolean();
+
+                            try
+                            {
+                                data.checkMainWord = reader.ReadBoolean();
+                                data.showArgsInfo = reader.ReadBoolean();
+                                data.delayForScreenshot = reader.ReadInt32();
+                            }
+                            catch (EndOfStreamException e)
+                            {
+                                LogSystem.WriteToLogs(e.ToString());
+                            }
                         }
                     });
                     return data;
@@ -69,8 +80,17 @@ namespace Duna.SaveModules
 
                         using var stream = File.OpenWrite(_pathToFile);
                         using var writer = new BinaryWriter(stream);
-                        writer.Write(data.checkMainWord);
-                        writer.Write(data.showArgsInfo);
+
+                        try
+                        {
+                            writer.Write(data.checkMainWord);
+                            writer.Write(data.showArgsInfo);
+                            writer.Write(data.delayForScreenshot);
+                        }
+                        catch (Exception e)
+                        {
+                            LogSystem.WriteToLogs(e.ToString());
+                        }
                     });
                 }
                 catch (Exception ex)
@@ -93,9 +113,8 @@ namespace Duna.SaveModules
 
     public class SaveData
     {
-        /// <summary>
-        /// </summary>
         public bool checkMainWord { get; set; }
         public bool showArgsInfo { get; set; }
+        public int delayForScreenshot { get; set; }
     }
 }

@@ -27,6 +27,8 @@ namespace Duna.Windows
 
             checkArgsAfterMainWord.IsChecked = MainWindow.isCheckMainWord;
             checkArgsInfo.IsChecked = MainWindow.showArgsInfo;
+            Debug.WriteLine(MainWindow.milisecondForScreenshotDelay.ToString());
+            DelayForScreenshotBar.Text = MainWindow.milisecondForScreenshotDelay.ToString();
         }
 
         private async void CheckBox_Changed(object sender, RoutedEventArgs e)
@@ -34,7 +36,7 @@ namespace Duna.Windows
             if (checkArgsAfterMainWord.IsChecked == true) MainWindow.isCheckMainWord = true;
             else MainWindow.isCheckMainWord = false;
 
-            await SaveData(MainWindow.isCheckMainWord, MainWindow.showArgsInfo);
+            await SaveData(MainWindow.isCheckMainWord, MainWindow.showArgsInfo, MainWindow.milisecondForScreenshotDelay);
         }
 
         private async void CheckArgs_Changed(object sender, RoutedEventArgs e)
@@ -42,10 +44,10 @@ namespace Duna.Windows
             if (checkArgsInfo.IsChecked == true) MainWindow.showArgsInfo = true;
             else MainWindow.showArgsInfo = false;
 
-            await SaveData(MainWindow.isCheckMainWord, MainWindow.showArgsInfo);
+            await SaveData(MainWindow.isCheckMainWord, MainWindow.showArgsInfo, MainWindow.milisecondForScreenshotDelay);
         }
 
-        async Task SaveData(bool mainWord, bool argInfo)
+        async Task SaveData(bool mainWord, bool argInfo, int delayScreenshot)
         {
             var rootDirectory = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -56,9 +58,24 @@ namespace Duna.Windows
 
             data.checkMainWord = mainWord;
             data.showArgsInfo = argInfo;
+            data.delayForScreenshot = delayScreenshot;
 
             await repository.Save(data);
             Debug.WriteLine($"данные сохранены в - {rootDirectory}");
+        }
+
+        private async void DelayForScreenshotBar_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            int.TryParse(DelayForScreenshotBar.Text, out MainWindow.milisecondForScreenshotDelay);
+
+            if (MainWindow.milisecondForScreenshotDelay > 5000 || MainWindow.milisecondForScreenshotDelay < 0)
+            {
+                MessageBox.Show("Значение превышает лимит, будет установлено 350!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MainWindow.milisecondForScreenshotDelay = 350;
+                DelayForScreenshotBar.Text = "350";
+            }
+
+            await SaveData(MainWindow.isCheckMainWord, MainWindow.showArgsInfo, MainWindow.milisecondForScreenshotDelay);
         }
     }
 }

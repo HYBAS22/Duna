@@ -1,0 +1,6 @@
+photoshop,фотошоп|C:\Program Files\Adobe\Adobe Photoshop 2022\Photoshop.exe
+premiere,премьер,премиер,монтаж|C:\Program Files\Adobe\Adobe Premiere Pro 2020\Adobe Premiere Pro.exe
+illustrator,иллюстратор,илюстратор,вектор|C:\Program Files\Adobe\Adobe Illustrator 2022\Support Files\Contents\Windows\Illustrator.exe
+браузер,firefox,интернет,инет|C:\Program Files\Mozilla Firefox\firefox.exe
+visual,studio,визуал,студио,vs,вс|C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe
+visual,studio,code,визуал,студио,код,vscode|C:\Users\hybas\AppData\Local\Programs\Microsoft VS Code\Code.exe

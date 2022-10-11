@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<TargetFramework>net6.0-windows8.0</TargetFramework>
-	<Nullable>enable</Nullable>
+    <TargetFramework>net6.0-windows8.0</TargetFramework>
+    <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>index.ico</ApplicationIcon>
     <IsPublishable>False</IsPublishable>
@@ -56,6 +56,9 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="index.ico" />
+  </ItemGroup>
   <ItemGroup Label="DunaAI">
     <None Include="DunaAI.consumption.cs">
       <DependentUpon>DunaAI.mbconfig</DependentUpon>
@@ -67,8 +70,5 @@
       <DependentUpon>DunaAI.mbconfig</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="index.ico" />
   </ItemGroup>
 </Project>
