@@ -15,8 +15,6 @@
 # Какие ОС поддерживаются
 Поддерживается только Windows, так как проект сделан на WPF.
 
-Возможно его можно запустить на Linux через Wine, но я не пробовал
-
 # Скриншоты
 ![screenshot 39](https://user-images.githubusercontent.com/64355829/189521792-47bbad5e-3c98-48ca-ac34-0bef3896bcf6.png)
 ![screenshot 40](https://user-images.githubusercontent.com/64355829/189521796-7d3fd400-cc1b-4614-a83b-01733716a2cc.png)
